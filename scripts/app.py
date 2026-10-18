@@ -22,7 +22,13 @@ def serve(environ, start_response):
     ctype = mimetypes.guess_type(full)[0] or 'application/octet-stream'
     if ctype.startswith('text/') or ctype == 'application/json':
         ctype += '; charset=utf-8'
-    cache = 'public, max-age=3600' if '/data/' in full else 'public, max-age=300'
+    # The page and the files that list what exists must never be served stale;
+    # one day's snapshot can be cached for an hour.
+    name = os.path.basename(full)
+    if '/data/history/' in full and name[:4].isdigit():
+        cache = 'public, max-age=3600'
+    else:
+        cache = 'no-cache'
     start_response('200 OK', [('Content-Type', ctype), ('Content-Length', str(len(body))), ('Cache-Control', cache)])
     return [body]
 
