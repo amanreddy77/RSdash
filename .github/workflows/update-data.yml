@@ -1,9 +1,11 @@
 name: Update market data
 
+# PAUSED: data is frozen at January–April 2026 (see env below).
+# To resume daily updates: uncomment the schedule and delete DATA_END / HISTORY_START.
 on:
-  schedule:
-    # 14:30 UTC = 20:00 IST, Monday to Friday, after the NSE end-of-day files are published
-    - cron: '30 14 * * 1-5'
+  # schedule:
+  #   # 14:30 UTC = 20:00 IST, Monday to Friday, after the NSE end-of-day files are published
+  #   - cron: '30 14 * * 1-5'
   workflow_dispatch:
 
 permissions:
@@ -12,6 +14,10 @@ permissions:
 concurrency:
   group: update-data
   cancel-in-progress: false
+
+env:
+  DATA_END: '2026-04-30'        # ignore prices after this day
+  HISTORY_START: '2026-01-01'   # first day in the date picker
 
 jobs:
   update:
@@ -53,8 +59,6 @@ jobs:
 
       - name: Compute RS ratings, screener data and daily history
         working-directory: work
-        env:
-          HISTORY_SESSIONS: '126'
         run: |
           python ../pipeline/compute_rs.py
           python ../pipeline/compute_screener.py

@@ -13,9 +13,11 @@ The site is static: `scripts/public/index.html` reads two data files from `scrip
 |---|---|
 | `scripts/public/data/rs.json` | RS ratings, returns and signals for ~2,400 NSE stocks, sector/industry aggregates, breadth, and 4 years of weekly prices for the charts |
 | `scripts/public/data/screener.json` | The latest session's movers, circuits and sector changes |
-| `scripts/public/data/history/` | One snapshot per trading day for the last ~6 months (126 sessions), used by the date picker |
+| `scripts/public/data/history/` | One snapshot per trading day (currently 1 Jan – 30 Apr 2026), used by the date picker |
 
-A GitHub Action (`.github/workflows/update-data.yml`) rebuilds both files every weekday at 20:00 IST:
+> **Updates are paused.** The data is frozen at 1 Jan – 30 Apr 2026. To resume, uncomment the `schedule` in `.github/workflows/update-data.yml` and delete its `DATA_END` and `HISTORY_START` lines, then run the workflow once.
+
+A GitHub Action (`.github/workflows/update-data.yml`) rebuilds the data files (when its schedule is on, every weekday at 20:00 IST):
 
 1. Downloads NSE daily prices (split/bonus adjusted) from [eod2_data](https://github.com/BennyThadikaran/eod2_data).
 2. Runs `pipeline/compute_rs.py`, `pipeline/compute_screener.py`, `pipeline/embed.py` and `pipeline/compute_history.py`.

@@ -20,6 +20,10 @@ import pandas as pd
 
 PX, OUT = 'px', 'out'
 SESSIONS = int(os.environ.get('HISTORY_SESSIONS', '126'))
+# Optional freeze date: ignore every price after it
+DATA_END = pd.Timestamp(os.environ['DATA_END']) if os.environ.get('DATA_END') else None
+# Optional first snapshot day; when set it replaces the HISTORY_SESSIONS count
+HISTORY_START = pd.Timestamp(os.environ['HISTORY_START']) if os.environ.get('HISTORY_START') else None
 HIST = os.path.join(OUT, 'history')
 os.makedirs(HIST, exist_ok=True)
 
@@ -28,10 +32,13 @@ FIELDS = ['s', 'p', 'd1', 'm3', 'm12', 'rs', 'dl', 'whd', 'to', 'bd', 'rb', 'vhi
 
 def load(path, cols):
     df = pd.read_csv(path, usecols=['Date'] + cols, parse_dates=['Date'])
-    return df.dropna(subset=['Close']).drop_duplicates('Date').set_index('Date').sort_index()
+    df = df.dropna(subset=['Close']).drop_duplicates('Date').set_index('Date').sort_index()
+    return df if DATA_END is None else df[df.index <= DATA_END]
 
 
 b500_full = load(f'{PX}/nifty_500.csv', ['Close'])['Close']
+if HISTORY_START is not None:
+    SESSIONS = int((b500_full.index >= HISTORY_START).sum())
 cal = b500_full.index[-(SESSIONS + 600):]          # 52-week windows + 252-session RS lookback
 dates = cal[-SESSIONS:]
 b500 = b500_full.reindex(cal).ffill()
@@ -195,7 +202,10 @@ for D in dates:
     json.dump(dict(d=d, sc=sc), open(path, 'w'), separators=(',', ':'), allow_nan=False)
     written.append(str(D.date()))
 
-json.dump(dict(dates=written[::-1]), open(os.path.join(HIST, 'index.json'), 'w'), separators=(',', ':'))
+index = dict(dates=written[::-1])
+if DATA_END is not None:
+    index['frozen'] = written[-1]   # tells the site that updates are paused
+json.dump(index, open(os.path.join(HIST, 'index.json'), 'w'), separators=(',', ':'))
 json.dump({s: [meta[s]['company'].replace(' Limited', '').replace(' LIMITED', '').replace(' Ltd.', '').replace(' Ltd', ''),
                meta[s]['sector'], meta[s]['basicIndustry']] for s in sorted(used)},
           open(os.path.join(HIST, 'meta.json'), 'w'), separators=(',', ':'))

@@ -15,6 +15,8 @@ import numpy as np
 import pandas as pd
 
 PX = 'px'
+# Optional freeze date (YYYY-MM-DD): ignore every price after it
+DATA_END = pd.Timestamp(os.environ['DATA_END']) if os.environ.get('DATA_END') else None
 OUT = 'out'
 os.makedirs(OUT, exist_ok=True)
 
@@ -26,6 +28,8 @@ STALE_DAYS = 7               # skip stocks whose last print is older than this (
 def load(path):
     df = pd.read_csv(path, usecols=['Date', 'High', 'Close', 'Volume'], parse_dates=['Date'])
     df = df.dropna(subset=['Close']).drop_duplicates('Date').set_index('Date').sort_index()
+    if DATA_END is not None:
+        df = df[df.index <= DATA_END]
     return df
 
 

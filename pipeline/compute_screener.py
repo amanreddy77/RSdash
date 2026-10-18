@@ -12,9 +12,12 @@ import numpy as np
 import pandas as pd
 
 PX, OUT = 'px', 'out'
+# Optional freeze date (YYYY-MM-DD): ignore every price after it
+DATA_END = pd.Timestamp(os.environ['DATA_END']) if os.environ.get('DATA_END') else pd.Timestamp.max
 meta = {r['symbol']: r for r in csv.DictReader(open('master.csv'))}
 rs = {s['s']: s['rs'] for s in json.load(open(f'{OUT}/data.json'))['stocks']}
-asof = pd.read_csv(f'{PX}/nifty_500.csv', parse_dates=['Date'])['Date'].max()
+_b = pd.read_csv(f'{PX}/nifty_500.csv', parse_dates=['Date'])['Date']
+asof = _b[_b <= DATA_END].max()
 
 rows = []
 for sym, m in meta.items():
@@ -22,6 +25,7 @@ for sym, m in meta.items():
     if not os.path.exists(f):
         continue
     df = pd.read_csv(f, usecols=['Date', 'High', 'Low', 'Close', 'Volume'], parse_dates=['Date'])
+    df = df[df['Date'] <= DATA_END]
     df = df.dropna(subset=['Close']).drop_duplicates('Date').sort_values('Date').tail(300)
     if len(df) < 2 or df['Date'].iloc[-1] != asof:
         continue
