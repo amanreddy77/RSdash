@@ -1,0 +1,10 @@
+# Used when Vercel builds from this folder with its Python preset: app.py serves
+# the static site in public/. No packages needed.
+[project]
+name = "strength-desk-site"
+version = "1.0.0"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.vercel]
+entrypoint = "app:app"

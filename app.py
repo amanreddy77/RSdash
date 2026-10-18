@@ -1,31 +1,14 @@
-"""Serves the static site in public/ when Vercel builds this repo with its Python preset.
+"""Fallback for Vercel's Python preset when the project builds from the repo root.
 
-With the "Other" preset Vercel serves public/ directly and this file is unused.
-It has no dependencies: a plain WSGI app that returns files from public/.
+The site lives in scripts/public/ and is served by scripts/app.py. This module
+loads that server by file path, so both possible Vercel root folders work.
 """
-import mimetypes
+import importlib.util
 import os
 
-ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'public')
+_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'scripts', 'app.py')
+_spec = importlib.util.spec_from_file_location('site_server', _path)
+_mod = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_mod)
 
-
-def serve(environ, start_response):
-    path = environ.get('PATH_INFO') or '/'
-    if path.endswith('/'):
-        path += 'index.html'
-    full = os.path.normpath(os.path.join(ROOT, path.lstrip('/')))
-    # Stay inside public/; anything unknown falls back to the site itself
-    if not full.startswith(ROOT + os.sep) or not os.path.isfile(full):
-        full = os.path.join(ROOT, 'index.html')
-    with open(full, 'rb') as f:
-        body = f.read()
-    ctype = mimetypes.guess_type(full)[0] or 'application/octet-stream'
-    if ctype.startswith('text/') or ctype == 'application/json':
-        ctype += '; charset=utf-8'
-    cache = 'public, max-age=3600' if '/data/' in full else 'public, max-age=300'
-    start_response('200 OK', [('Content-Type', ctype), ('Content-Length', str(len(body))), ('Cache-Control', cache)])
-    return [body]
-
-
-# Vercel looks for a module-level `app` (see [tool.vercel] in pyproject.toml)
-app = serve
+app = _mod.app

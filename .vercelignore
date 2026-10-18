@@ -1,5 +1,5 @@
-# The Python scripts run in GitHub Actions, not on Vercel. Keep them out of
-# the deployment so Vercel serves this as a plain static site.
-scripts/
+# The data pipeline runs in GitHub Actions, not on Vercel. Keep it out of the
+# deployment so Vercel only serves the website.
+pipeline/
 .github/
 README.md

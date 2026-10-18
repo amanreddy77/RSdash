@@ -1,5 +1,5 @@
-# Only used if Vercel builds this repo with its Python preset: app.py then
-# serves the static site in public/. It needs no packages.
+# Only used if Vercel builds this repo with its Python preset from the repo root:
+# app.py then serves the static site in scripts/public/. No packages needed.
 [project]
 name = "strength-desk"
 version = "1.0.0"

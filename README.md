@@ -7,17 +7,17 @@ An NSE relative-strength (RS) dashboard and screener, built on real end-of-day p
 
 ## How it works
 
-The site is static: `public/index.html` reads two data files from `public/data/`. `app.py` only exists so the site also works if Vercel builds the repo with its Python preset.
+The site is static: `scripts/public/index.html` reads two data files from `scripts/public/data/`. `scripts/` is the folder Vercel deploys; `scripts/app.py` (and the root `app.py`) only exist so the site also works under Vercel's Python preset. The data pipeline lives in `pipeline/`.
 
 | File | Contents |
 |---|---|
-| `public/data/rs.json` | RS ratings, returns and signals for ~2,400 NSE stocks, sector/industry aggregates, breadth, and 4 years of weekly prices for the charts |
-| `public/data/screener.json` | The latest session's movers, circuits and sector changes |
+| `scripts/public/data/rs.json` | RS ratings, returns and signals for ~2,400 NSE stocks, sector/industry aggregates, breadth, and 4 years of weekly prices for the charts |
+| `scripts/public/data/screener.json` | The latest session's movers, circuits and sector changes |
 
 A GitHub Action (`.github/workflows/update-data.yml`) rebuilds both files every weekday at 20:00 IST:
 
 1. Downloads NSE daily prices (split/bonus adjusted) from [eod2_data](https://github.com/BennyThadikaran/eod2_data).
-2. Runs `scripts/compute_rs.py`, `scripts/compute_screener.py` and `scripts/embed.py`.
+2. Runs `pipeline/compute_rs.py`, `pipeline/compute_screener.py` and `pipeline/embed.py`.
 3. Commits the new data. Vercel redeploys on the commit.
 
 Run it by hand from the **Actions** tab with **Run workflow**.
@@ -35,5 +35,5 @@ Percentile rank (1–99) of `(2×C/C63 + C/C126 + C/C189 + C/C252) / 5` across e
 ## Run locally
 
 ```bash
-cd public && python3 -m http.server 8000   # then open http://localhost:8000
+cd scripts/public && python3 -m http.server 8000   # then open http://localhost:8000
 ```
