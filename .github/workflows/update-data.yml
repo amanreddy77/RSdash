@@ -1,0 +1,73 @@
+name: Update market data
+
+on:
+  schedule:
+    # 14:30 UTC = 20:00 IST, Monday to Friday, after the NSE end-of-day files are published
+    - cron: '30 14 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: scripts/requirements.txt
+
+      - name: Install Python packages
+        run: pip install -r scripts/requirements.txt
+
+      - name: Download NSE end-of-day prices (eod2_data)
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/BennyThadikaran/eod2_data.git eod2
+          git -C eod2 sparse-checkout set daily
+          echo "Price files: $(ls eod2/daily | wc -l)"
+
+      - name: Prepare inputs
+        run: |
+          mkdir -p work
+          ln -s "$GITHUB_WORKSPACE/eod2/daily" work/px
+          for idx in "nifty 500" "nifty 50" "nifty midsmallcap 400"; do
+            cp "work/px/$idx.csv" "work/px/${idx// /_}.csv"
+          done
+          # Refresh the NSE sector/industry list; keep the committed copy if the download fails
+          if curl -fsSL https://raw.githubusercontent.com/dopawire/nse-relative-strength/main/nse_stock_master.csv -o work/master.csv \
+             && head -1 work/master.csv | grep -q basicIndustry; then
+            echo "Using the latest classification list"
+          else
+            cp scripts/master.csv work/master.csv
+            echo "Using the committed classification list"
+          fi
+
+      - name: Compute RS ratings and screener data
+        working-directory: work
+        run: |
+          python ../scripts/compute_rs.py
+          python ../scripts/compute_screener.py
+          python ../scripts/embed.py
+          cp out/embed.js ../data/rs.json
+          cp out/screener.json ../data/screener.json
+
+      - name: Commit the new data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then
+            echo "Data unchanged (market holiday or source not updated yet)"
+          else
+            git commit -m "Update market data for $(python -c "import json;print(json.load(open('data/screener.json'))['asof'])")"
+            git push
+          fi

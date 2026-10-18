@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Strength Desk</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one sticky header, then a single max-width column of cards; tables scroll inside their own boxes. */
+:root {
+  --bg: #F4F5F2; --surface: #FFFFFF; --surface-2: #F7F8F5; --chip: #EDEFEA;
+  --line: #E2E4DE; --line-2: #EEF0EB; --ctl: #D5D8D0;
+  --ink: #12161C; --ink-2: #3F4650; --muted: #5B636E; --ma: #8A919B;
+  --accent: #1D4ED8; --sel: #E8EEF9; --inv-bg: #12161C; --inv-fg: #FFFFFF;
+  --up: #0A7A45; --down: #B42318; --warn: #B4530A; --gold: #9A6700;
+  --b1-bg: #CDEFD9; --b1-fg: #0B5A33; --b2-bg: #E3F5E9; --b2-fg: #146C3E; --b3-bg: #DCEBFB; --b3-fg: #1A4F8A;
+  --b4-bg: #ECEDEA; --b4-fg: #3F4650; --b5-bg: #FBE3E1; --b5-fg: #8E2A22; --b6-bg: #F6CFCB; --b6-fg: #7A1F18;
+  --t-up-bg: #E7F5EC; --t-up-line: #B7E0C5; --t-dn-bg: #FBEAE8; --t-dn-line: #F2C2BD;
+  --t-50-bg: #E3F3F5; --t-50-line: #B4DDE2; --t-50-fg: #0E6B75; --t-200-bg: #EFEAFB; --t-200-line: #D3C6F2; --t-200-fg: #5B3FA8;
+  --rs: #1F6FEB; --dot: #00A3C4;
+  --sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0E1116; --surface: #151A21; --surface-2: #1A2029; --chip: #1F2630;
+  --line: #262E39; --line-2: #1F2630; --ctl: #33404E;
+  --ink: #E7EBF0; --ink-2: #C3CBD4; --muted: #98A2AE; --ma: #7D8793;
+  --accent: #7AA7FF; --sel: #1C2A44; --inv-bg: #E7EBF0; --inv-fg: #0E1116;
+  --up: #4CC38A; --down: #F2777A; --warn: #F0A55B; --gold: #E5B84F;
+  --b1-bg: #133D27; --b1-fg: #7EE2A8; --b2-bg: #16301F; --b2-fg: #9BDDB5; --b3-bg: #142A45; --b3-fg: #9CC3F5;
+  --b4-bg: #252B33; --b4-fg: #C3CBD4; --b5-bg: #3A1C1C; --b5-fg: #F3A6A0; --b6-bg: #4A1B18; --b6-fg: #F7B4AE;
+  --t-up-bg: #11281B; --t-up-line: #1F5135; --t-dn-bg: #2B1516; --t-dn-line: #5E2A2A;
+  --t-50-bg: #0F2629; --t-50-line: #1E5359; --t-50-fg: #6FD3DC; --t-200-bg: #1C1830; --t-200-line: #43376E; --t-200-fg: #B9A4F4;
+  --rs: #5B9BFF; --dot: #22C7E6; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0E1116; --surface: #151A21; --surface-2: #1A2029; --chip: #1F2630;
+  --line: #262E39; --line-2: #1F2630; --ctl: #33404E;
+  --ink: #E7EBF0; --ink-2: #C3CBD4; --muted: #98A2AE; --ma: #7D8793;
+  --accent: #7AA7FF; --sel: #1C2A44; --inv-bg: #E7EBF0; --inv-fg: #0E1116;
+  --up: #4CC38A; --down: #F2777A; --warn: #F0A55B; --gold: #E5B84F;
+  --b1-bg: #133D27; --b1-fg: #7EE2A8; --b2-bg: #16301F; --b2-fg: #9BDDB5; --b3-bg: #142A45; --b3-fg: #9CC3F5;
+  --b4-bg: #252B33; --b4-fg: #C3CBD4; --b5-bg: #3A1C1C; --b5-fg: #F3A6A0; --b6-bg: #4A1B18; --b6-fg: #F7B4AE;
+  --t-up-bg: #11281B; --t-up-line: #1F5135; --t-dn-bg: #2B1516; --t-dn-line: #5E2A2A;
+  --t-50-bg: #0F2629; --t-50-line: #1E5359; --t-50-fg: #6FD3DC; --t-200-bg: #1C1830; --t-200-line: #43376E; --t-200-fg: #B9A4F4;
+  --rs: #5B9BFF; --dot: #22C7E6; color-scheme: dark }
+
+body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.4 }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface) }
+* { box-sizing: border-box }
+button, input, select { font: inherit; color: inherit }
+button { cursor: pointer }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+a { color: var(--accent) }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums }
+.wrap { max-width: 1360px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+.muted { color: var(--muted) }
+.up { color: var(--up) } .down { color: var(--down) } .flat { color: var(--ink-2) }
+
+/* header */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line) }
+.top .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 24px; padding-block: 10px }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink) }
+.brand b { font-size: 17px; letter-spacing: -0.01em }
+.brand small { display: block; font-size: 10.5px; letter-spacing: 0.08em; color: var(--muted) }
+.nav { display: flex; gap: 4px; flex: 1 1 auto }
+.nav a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 8px; color: var(--ink-2); text-decoration: none; font-weight: 500 }
+.nav a[aria-current="page"] { background: var(--inv-bg); color: var(--inv-fg); font-weight: 600 }
+.asof { font-size: 12px; color: var(--muted) }
+
+main.wrap { padding-block: 20px 56px; display: grid; gap: 16px }
+h1 { margin: 0; font-size: 24px; letter-spacing: -0.01em; text-wrap: balance }
+h2 { margin: 0; font-size: 15px; font-weight: 600 }
+h3 { margin: 0; font-size: 14px; font-weight: 600 }
+.sub { margin: 2px 0 0; font-size: 12px; color: var(--muted) }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; min-width: 0 }
+.card.flush { padding: 18px 0 0 }
+.card.flush > .pad { padding: 0 20px 12px }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px }
+.row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start }
+.split { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px }
+.label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase }
+
+.badge { display: inline-block; min-width: 40px; text-align: center; font-family: var(--mono); font-weight: 600; font-size: 12px; padding: 3px 6px; border-radius: 6px }
+.b1 { background: var(--b1-bg); color: var(--b1-fg) } .b2 { background: var(--b2-bg); color: var(--b2-fg) } .b3 { background: var(--b3-bg); color: var(--b3-fg) }
+.b4 { background: var(--b4-bg); color: var(--b4-fg) } .b5 { background: var(--b5-bg); color: var(--b5-fg) } .b6 { background: var(--b6-bg); color: var(--b6-fg) }
+
+.bars { display: grid; grid-template-columns: 120px minmax(0, 1fr) 48px; gap: 12px; align-items: center; font-size: 13px; margin-top: 14px }
+.track { height: 8px; border-radius: 4px; background: var(--chip) }
+.track i { display: block; height: 8px; border-radius: 4px; background: var(--up) }
+.track.thin, .track.thin i { height: 6px }
+.track.thin i { background: var(--rs) }
+.foot { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line-2); font-size: 12px; color: var(--muted) }
+.foot b { color: var(--ink) }
+.rank { display: grid; grid-template-columns: 18px minmax(0, 1fr) 70px 46px; gap: 10px; align-items: center; padding: 7px 0 }
+.rank .n { font-size: 12px; color: var(--muted) }
+.ell { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0 }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 14px }
+.tile { border: 0; border-radius: 10px; padding: 12px 14px; display: grid; gap: 4px; text-align: left; min-width: 0 }
+.tile[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--ink) }
+.tile .big { font-family: var(--mono); font-size: 26px; font-weight: 600; line-height: 1.1 }
+.tile .meta { font-family: var(--mono); font-size: 11px }
+.legend { display: flex; flex-wrap: wrap; gap: 6px; font-family: var(--mono); font-size: 11px }
+.legend span { padding: 3px 8px; border-radius: 6px }
+
+/* industry list */
+.ind-head, .ind-row { display: grid; grid-template-columns: minmax(0, 1fr) 38px 48px 60px 60px; gap: 8px; align-items: center; padding: 0 20px }
+.ind-head { padding-block: 8px; background: var(--surface-2); border-block: 1px solid var(--line-2); font-family: var(--mono); font-size: 11px; color: var(--muted) }
+.ind-row { width: 100%; min-height: 46px; border: 0; border-bottom: 1px solid var(--line-2); background: var(--surface); text-align: left }
+.ind-row:hover { background: var(--surface-2) }
+.ind-row[aria-pressed="true"] { background: var(--sel) }
+.r { text-align: right } .c { text-align: center }
+
+/* stock table */
+.tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 20px 14px }
+.search { display: flex; align-items: center; gap: 8px; flex: 1 1 220px; height: 40px; padding: 0 12px; border: 1px solid var(--ctl); border-radius: 8px; background: var(--surface) }
+.search input { flex: 1; min-width: 0; border: 0; background: transparent; font-size: 14px; outline: none }
+.search:focus-within { outline: 2px solid var(--accent); outline-offset: 1px }
+.chip { min-height: 38px; padding: 0 12px; border: 1px solid var(--ctl); border-radius: 19px; background: var(--surface); font-size: 13px }
+.chip[aria-pressed="true"] { background: var(--inv-bg); color: var(--inv-fg); border-color: var(--inv-bg) }
+.btn { min-height: 38px; padding: 0 14px; border: 1px solid var(--ctl); border-radius: 8px; background: var(--surface); font-size: 13px; display: inline-flex; align-items: center; gap: 8px }
+.btn.dark, .btn[aria-expanded="true"] { background: var(--inv-bg); color: var(--inv-fg); border-color: var(--inv-bg) }
+.scroll { overflow-x: auto }
+.t { min-width: 1180px }
+.t-head, .t-row { display: grid; grid-template-columns: minmax(230px, 1.5fr) minmax(160px, 1.2fr) 96px 66px 72px 76px 54px 62px 84px 76px minmax(130px, 1fr); gap: 0 12px; align-items: center; padding-right: 20px }
+.t-head { background: var(--surface-2); border-top: 1px solid var(--line-2); font-family: var(--mono); font-size: 11px; color: var(--muted) }
+.t-head > span { padding-block: 8px }
+.t-head button { border: 0; background: none; padding: 8px 0; font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.04em }
+.t-head button[aria-pressed="true"] { color: var(--ink); font-weight: 600 }
+.t-row { border-top: 1px solid var(--line-2); background: var(--surface) }
+.t-row.on { background: var(--sel) }
+.stick { position: sticky; left: 0; z-index: 1; display: flex; align-items: center; gap: 10px; min-width: 0; padding: 6px 8px 6px 20px; background: inherit; box-shadow: 1px 0 0 var(--line) }
+.t-head .stick { padding-left: 48px }
+.stick input { width: 18px; height: 18px; margin: 0; flex: none; accent-color: var(--ink) }
+.sym { display: grid; gap: 1px; min-height: 40px; min-width: 0; padding: 0; border: 0; background: none; text-align: left; align-content: center }
+.sym b { font-size: 14px; display: flex; align-items: center; gap: 6px }
+.sym small { font-size: 12px; color: var(--muted) }
+.ex { font-family: var(--mono); font-size: 10px; font-weight: 600; padding: 1px 5px; border-radius: 4px; background: var(--b3-bg); color: var(--b3-fg) }
+.bdot { display: inline-block; flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--dot) }
+.sig { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2) }
+.more { padding: 12px 20px 16px; border-top: 1px solid var(--line-2); text-align: center }
+.empty { padding: 28px 20px; border-top: 1px solid var(--line-2); color: var(--muted); text-align: center }
+
+/* detail */
+.seg { display: flex; gap: 4px; padding: 3px; border-radius: 10px; background: var(--chip) }
+.seg button { min-height: 34px; min-width: 48px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: var(--ink-2); font-size: 13px; font-weight: 500 }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(18, 22, 28, 0.14) }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 16px }
+.stat { padding: 12px 14px; border-radius: 10px; background: var(--surface-2) }
+.stat .k { font-size: 12px; color: var(--muted) }
+.stat .v { font-family: var(--mono); font-size: 22px; font-weight: 600; margin-top: 4px; display: flex; align-items: center; gap: 8px }
+.stat .v .badge { font-size: 20px; padding: 0 8px }
+.stat .v small { font-family: var(--sans); font-size: 13px; font-weight: 400; color: var(--ink-2) }
+.chartbox { margin-top: 10px; border: 1px solid var(--line-2); border-radius: 10px; padding: 10px 8px 6px }
+.chartbox svg { width: 100%; height: auto; display: block }
+.ticks { display: flex; justify-content: space-between; padding: 2px 7% 0 0.5%; font-size: 11px; color: var(--muted) }
+.leg { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--ink-2) }
+.leg span { display: flex; align-items: center; gap: 6px }
+.status { margin-top: 8px; font-size: 12px; color: var(--ink-2); white-space: pre-wrap }
+
+/* settings */
+.settings { margin-top: 16px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden }
+.settings .tabs { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 0 18px; border-bottom: 1px solid var(--line) }
+.settings .tabs > div { display: flex; gap: 20px }
+.settings .tabs button.tab { min-height: 44px; padding: 0 2px; border: 0; background: none; font-size: 15px; font-weight: 600; color: var(--muted) }
+.settings .tabs button.tab[aria-pressed="true"] { color: var(--ink); box-shadow: inset 0 -2px 0 var(--ink) }
+.x { align-self: center; width: 36px; height: 36px; border: 0; border-radius: 8px; background: transparent; color: var(--muted) }
+.sbody { padding: 6px 18px 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 4px 40px }
+.sbody .label { margin: 14px 0 6px }
+.field { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px }
+.check { display: flex; align-items: center; gap: 10px; min-height: 40px; cursor: pointer }
+.check input { width: 18px; height: 18px; margin: 0; accent-color: var(--ink) }
+.field select, .field input[type="number"] { height: 38px; padding: 0 10px; border: 1px solid var(--ctl); border-radius: 8px; background: var(--surface) }
+.field input[type="number"] { width: 72px; font-family: var(--mono) }
+.field input[type="color"] { width: 44px; height: 36px; padding: 2px; border: 1px solid var(--ctl); border-radius: 8px; background: var(--surface) }
+.sw { display: inline-block; width: 22px; height: 14px; border-radius: 4px }
+.hint { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.5 }
+.sfoot { display: flex; justify-content: flex-end; padding: 12px 18px; border-top: 1px solid var(--line-2); background: var(--surface-2) }
+
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px 24px; font-size: 13px; color: var(--ink-2); line-height: 1.55; margin-top: 12px }
+.notes p { margin: 0 } .notes b { color: var(--ink) }
+
+/* screener */
+.summary { display: flex; flex-wrap: wrap; padding: 0 }
+.summary > div { flex: 1 1 240px; padding: 16px 22px }
+.summary > div + div { border-left: 1px solid var(--line) }
+.summary .big { font-family: var(--mono); font-size: 28px; font-weight: 600 }
+.btiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px }
+.bt { padding: 14px 16px; border-radius: 10px; border: 1px solid }
+.bt .k { font-size: 12px; font-weight: 700; letter-spacing: 0.06em }
+.bt .v { font-family: var(--mono); font-size: 28px; font-weight: 600 }
+.bt.adv { background: var(--t-up-bg); border-color: var(--t-up-line); color: var(--up) }
+.bt.dec { background: var(--t-dn-bg); border-color: var(--t-dn-line); color: var(--down) }
+.bt.e50 { background: var(--t-50-bg); border-color: var(--t-50-line); color: var(--t-50-fg) }
+.bt.e200 { background: var(--t-200-bg); border-color: var(--t-200-line); color: var(--t-200-fg) }
+.movers { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; align-items: stretch }
+.mv { display: flex; flex-direction: column; gap: 6px }
+.mv .hd { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 40px }
+.mv .hd h3 { font-size: 16px; font-weight: 700 }
+.mv .list { flex: 1 }
+.mi { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 0 }
+.mi b { display: block; font-size: 15px }
+.mi small { font-size: 12px; color: var(--muted) }
+.mi .chg { font-family: var(--mono); font-weight: 600; font-size: 15px }
+.link { min-height: 40px; border: 0; background: none; color: var(--accent); font-weight: 600 }
+.blue { color: var(--accent) } .gold { color: var(--gold) }
+.st-head, .st-row { display: grid; grid-template-columns: minmax(130px, 1fr) minmax(180px, 1.4fr) 100px 76px 84px 90px 52px; gap: 0 14px; align-items: center; padding: 0 18px }
+.st-head { padding-block: 8px; background: var(--surface-2); border-top: 1px solid var(--line); font-family: var(--mono); font-size: 11px; color: var(--muted) }
+.st-row { min-height: 44px; border-top: 1px solid var(--line) }
+.layout { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start }
+.layout > .main { flex: 999 1 700px; min-width: 0; display: grid; gap: 16px }
+.layout > aside { flex: 1 1 300px; min-width: 0 }
+.loading { padding: 40px 20px; text-align: center; color: var(--muted) }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important } }
+</style>
+
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#dashboard" aria-label="Strength Desk home">
+      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="8" fill="var(--inv-bg)"></rect><path d="M8 24 L13.5 17 L18 20.5 L26 10" fill="none" stroke="var(--dot)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="26" cy="10" r="3" fill="var(--dot)"></circle></svg>
+      <span><b>Strength Desk</b><small>NSE · RELATIVE STRENGTH · EOD</small></span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="#dashboard" id="nav-dashboard">RS Dashboard</a>
+      <a href="#screener" id="nav-screener">Screener</a>
+    </nav>
+    <span class="asof num" id="asof"></span>
+  </div>
+</header>
+<main class="wrap" id="app"><div class="loading">Loading NSE end-of-day data…</div></main>
+
+<script>
+(() => {
+'use strict';
+// ---------------------------------------------------------------- state
+const DEFAULTS = () => ({
+  bench: 'Nifty 500', method: 'market', years: 3,
+  showRs: true, showMa: true, showDot: true, showLead: true, showHi: true,
+  zoneBg: true, showRating: true, showBase: true, prec: 'default',
+  tables: true, labels: true, statusVals: true, statusInputs: true,
+  z: { elite: 90, strong: 80, above: 60, neutral: 50, below: 40 },
+  rsColor: '', dotColor: ''
+});
+const S = Object.assign({
+  sec: null, ind: null, sel: null, q: '', rs80: false, near: false, nh: false, liq: false,
+  sort: 'rs', limit: 50, range: '1Y', picked: {}, copied: '', setOpen: false, setTab: 'inputs',
+  hl: 'hi', circ: 'uc', secTab: 'top', rDay: 'today', sview: null
+}, DEFAULTS());
+let D = null, SR = null, M = {}, SC = null, curInds = [], curSecs = [];
+
+const $app = document.getElementById('app');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const sgn = v => (v > 0 ? '+' : v < 0 ? '−' : '');
+const pct = v => v == null ? '—' : sgn(v) + Math.abs(v).toFixed(1) + '%';
+const cls = v => v == null ? 'flat' : v > 0 ? 'up' : v < 0 ? 'down' : 'flat';
+const inr = v => '₹' + v.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const nIN = v => v.toLocaleString('en-IN');
+const pressed = on => 'aria-pressed="' + (on ? 'true' : 'false') + '"';
+
+function band(v) {
+  const z = S.z;
+  if (v >= z.elite) return ['b1', 'Elite']; if (v >= z.strong) return ['b2', 'Strong'];
+  if (v >= z.above) return ['b3', 'Above average']; if (v >= z.neutral) return ['b4', 'Neutral'];
+  if (v >= z.below) return ['b5', 'Below average']; return ['b6', 'Weak'];
+}
+const sband = v => v >= 65 ? 'b1' : v >= 58 ? 'b2' : v >= 50 ? 'b4' : v >= 44 ? 'b5' : 'b6';
+const badge = v => '<span class="badge ' + band(v)[0] + '">' + v + '</span>';
+
+// ---------------------------------------------------------------- data
+async function load() {
+  try {
+    const [rs, sc] = await Promise.all([fetch('data/rs.json').then(r => r.json()), fetch('data/screener.json').then(r => r.json())]);
+    const d = rs.d;
+    d.stocks = d.s.map(a => { const o = {}; d.f.forEach((k, i) => { o[k] = a[i]; }); o.rb = !!o.rb; return o; });
+    d.stocks.forEach(s => { M[s.s] = s; });
+    const close = {};
+    for (const k in rs.sr.c) {
+      const e = rs.sr.c[k], out = new Array(e[0]).fill(null);
+      if (e.length > 1) { let x = e[1]; out.push(x); for (let i = 2; i < e.length; i++) { const v = e[i]; if (v == null) { out.push(null); continue; } x *= 1 + v / 100000; out.push(x); } }
+      close[k] = out;
+    }
+    D = d; SR = { dates: rs.sr.dates, bench: rs.sr.bench, close, rating: rs.sr.r }; SC = sc;
+    document.getElementById('asof').textContent = 'NSE EOD · ' + new Date(D.asof + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    render();
+  } catch (e) {
+    $app.innerHTML = '<div class="card loading">Could not load the market data files (' + esc(e.message || e) + '). Reload the page to try again.</div>';
+  }
+}
+
+// ---------------------------------------------------------------- RS chart maths
+function ownRating(rl, years) {
+  const N = rl.length, score = new Array(N).fill(null), out = new Array(N).fill(null);
+  for (let i = 52; i < N; i++) {
+    const a = rl[i], q = [rl[i - 13], rl[i - 26], rl[i - 39], rl[i - 52]];
+    if (a == null || q.some(v => v == null)) continue;
+    score[i] = (2 * a / q[0] + a / q[1] + a / q[2] + a / q[3]) / 5;
+  }
+  const win = years * 52;
+  for (let i = 0; i < N; i++) {
+    if (score[i] == null) continue;
+    const w = score.slice(Math.max(0, i - win + 1), i + 1).filter(v => v != null);
+    if (w.length < 26) continue;
+    let below = 0, eq = 0;
+    w.forEach(v => { if (v < score[i]) below++; else if (v === score[i]) eq++; });
+    out[i] = Math.round(((below + 0.5 * eq) / w.length) * 98 + 1);
+  }
+  return out;
+}
+
+function chart(sym, k) {
+  const cl = SR.close[sym], bc = SR.bench[S.bench];
+  if (!cl) return null;
+  const N = cl.length, st = N - k;
+  const rl = cl.map((x, i) => (x == null || !bc[i]) ? null : x / bc[i]);
+  const ma = rl.map((x, i) => { if (x == null || i < 9) return null; const w = rl.slice(i - 9, i + 1); return w.some(v => v == null) ? null : w.reduce((a, b) => a + b, 0) / 10; });
+  const hi = rl.map((x, i) => x == null ? null : Math.max(...rl.slice(Math.max(0, i - 51), i + 1).filter(v => v != null)));
+  const blue = [], lead = [];
+  for (let i = Math.max(st, 26); i < N; i++) {
+    if (rl[i] == null) continue;
+    const prev = rl.slice(Math.max(0, i - 52), i).filter(v => v != null);
+    if (prev.length < 26 || rl[i] < Math.max(...prev)) continue;
+    blue.push(i);
+    const pp = cl.slice(Math.max(0, i - 52), i).filter(v => v != null);
+    if (pp.length && cl[i] < Math.max(...pp)) lead.push(i);
+  }
+  const V = rl.slice(st), MA = ma.slice(st), H = hi.slice(st);
+  const first = V.find(v => v != null);
+  if (first == null) return null;
+  const f = 100 / first;
+  const shown = [].concat(S.showRs ? V : [], S.showMa ? MA : [], S.showHi ? H : [], S.showRs ? [] : V).filter(v => v != null).map(v => v * f);
+  if (S.showBase) shown.push(100);
+  let mn = Math.min(...shown), mx = Math.max(...shown);
+  const pd = (mx - mn) * 0.08 || 1; mn -= pd; mx += pd;
+  const X = i => 10 + i * 740 / (k - 1), Yv = v => 14 + (mx - v) / (mx - mn) * 202, Y = v => Yv(v * f), RY = v => 10 + (100 - v) * 1.2;
+  const path = (a, fy) => { let o = '', pen = false; a.forEach((v, i) => { if (v == null) { pen = false; return; } o += (pen ? 'L' : 'M') + X(i).toFixed(1) + ' ' + fy(v).toFixed(1) + ' '; pen = true; }); return o; };
+  const ring = (cx, cy, r) => 'M' + (cx - r).toFixed(1) + ' ' + cy.toFixed(1) + ' a' + r + ' ' + r + ' 0 1 0 ' + 2 * r + ' 0 a' + r + ' ' + r + ' 0 1 0 ' + -2 * r + ' 0';
+  const own = ownRating(rl, S.years);
+  const R = S.method === 'own' ? own.slice(-k) : SR.rating[sym].slice(-k);
+  const dec = S.prec === 'default' ? 1 : +S.prec;
+  const fmt = v => v == null ? '—' : (v * f).toFixed(dec);
+  const lastV = V[k - 1], lastR = R.slice().reverse().find(v => v != null);
+  const methodLabel = S.method === 'own' ? 'own ' + S.years + 'y history' : 'rank vs all NSE stocks';
+  const status = [];
+  if (S.statusVals) status.push('RS ' + fmt(lastV) + '  ·  10W MA ' + fmt(MA[k - 1]) + '  ·  52W high ' + fmt(H[k - 1]) + '  ·  Rating ' + (lastR == null ? '—' : lastR));
+  if (S.statusInputs) status.push('(' + S.bench + ', ' + methodLabel + ')');
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map(p => { const ds = SR.dates[st + Math.round(p * (k - 1))]; return new Date(ds + 'T00:00:00').toLocaleString('en-GB', { month: 'short' }) + ' ’' + ds.slice(2, 4); });
+  return {
+    rs: S.showRs ? path(V, Y) : '', ma: S.showMa ? path(MA, Y) : '', hi: S.showHi ? path(H, Y) : '',
+    base: S.showBase ? 'M10 ' + Yv(100).toFixed(1) + ' L750 ' + Yv(100).toFixed(1) : '',
+    dots: S.showDot ? blue.map(i => ring(X(i - st), Y(rl[i]), 3.6)).join(' ') : '',
+    lead: S.showLead ? lead.map(i => ring(X(i - st), Y(rl[i]), 7.5)).join(' ') : '',
+    r: S.showRating ? path(R, RY) : '',
+    end: S.labels && S.showRs && lastV != null ? { x: X(k - 1) + 10, y: Y(lastV) + 4, t: fmt(lastV) } : null,
+    status: status.join('  '), ticks, methodLabel, ownLast: own.slice().reverse().find(v => v != null)
+  };
+}
+
+// ---------------------------------------------------------------- dashboard
+function dashboard() {
+  const B = D.breadth;
+  const big = D.sectors.filter(x => x.n >= 10);
+  const leaders = big.slice(0, 5), improvers = big.slice().sort((a, b) => b.chg - a.chg).slice(0, 5);
+  curSecs = D.sectors;
+  curInds = S.sec ? D.industries.filter(i => i.sec === S.sec) : D.industries.filter(i => i.n >= 5).slice(0, 15);
+  const q = S.q.trim().toLowerCase();
+  let list = D.stocks.filter(s => (!S.sec || s.sec === S.sec) && (!S.ind || s.ind === S.ind) &&
+    (!q || s.s.toLowerCase().includes(q) || s.n.toLowerCase().includes(q)) &&
+    (!S.rs80 || s.rs >= 80) && (!S.near || s.whd >= -15) && (!S.nh || s.bd > 0 || s.rb) && (!S.liq || s.to >= 5));
+  if (S.sort !== 'rs') list = list.slice().sort((a, b) => (b[S.sort] ?? -1e9) - (a[S.sort] ?? -1e9));
+  S._list = list;
+  const shown = list.slice(0, S.limit);
+  const picked = Object.keys(S.picked);
+  const sel = M[S.sel] || list[0] || D.stocks[0];
+  const RANGES = [['6M', 26], ['1Y', 52], ['2Y', 104], ['3Y', 156]];
+  const k = (RANGES.find(r => r[0] === S.range) || RANGES[1])[1];
+  const c = chart(sel.s, k);
+  const own = S.method === 'own';
+  const rsVal = own ? (c && c.ownLast) : sel.rs;
+  const scope = S.ind || S.sec;
+  const heads = [['d1', '1D', 'r'], ['m3', '3M', 'r'], ['m12', '12M', 'r'], ['rs', 'RS', 'c'], ['dl', 'ΔRS 20D', 'r'], ['whd', 'FROM 52WH', 'r'], ['to', 'TO ₹CR', 'r']];
+  const z = S.z, RY = v => 10 + (100 - v) * 1.2;
+  const rsColor = S.rsColor || 'var(--rs)', dotColor = S.dotColor || 'var(--dot)';
+
+  return `
+  <h1>RS Dashboard</h1>
+  <div class="grid3">
+    <section class="card">
+      <h2>Market breadth</h2><p class="sub num">NSE stocks with 200+ sessions · ${nIN(B.base)}</p>
+      <div class="bars">${[['> 21 EMA', B.e21], ['> 50 EMA', B.e50], ['> 200 EMA', B.e200], ['Within 15% of high', B.near]].map(x =>
+        `<span>${x[0]}</span><div class="track"><i style="width:${x[1]}%"></i></div><span class="num r"><b>${Math.round(x[1])}%</b></span>`).join('')}</div>
+      <div class="foot num"><span>Advancers <b class="up">${nIN(B.adv)}</b></span><span>Decliners <b class="down">${nIN(B.dec)}</b></span><span>RS ≥ 80 <b>${nIN(B.rs80)}</b></span><span>New 52W highs <b>${B.nh}</b></span></div>
+    </section>
+    <section class="card">
+      <h2>Leading sectors</h2><p class="sub">By average RS rating of member stocks</p>
+      <div style="margin-top:10px">${leaders.map((x, i) => `<div class="rank"><span class="n num">${i + 1}</span><span class="ell">${esc(x.name)}</span><div class="track thin"><i style="width:${x.avg}%"></i></div><span class="badge ${sband(x.avg)}">${Math.round(x.avg)}</span></div>`).join('')}</div>
+    </section>
+    <section class="card">
+      <h2>Improving fastest</h2><p class="sub">20-session change in average RS</p>
+      <div style="margin-top:10px">${improvers.map((x, i) => `<div class="rank" style="grid-template-columns:18px minmax(0,1fr) 54px 46px"><span class="n num">${i + 1}</span><span class="ell">${esc(x.name)}</span><span class="num r ${cls(x.chg)}"><b>${sgn(x.chg)}${Math.abs(x.chg).toFixed(1)}</b></span><span class="badge ${sband(x.avg)}">${Math.round(x.avg)}</span></div>`).join('')}</div>
+    </section>
+  </div>
+
+  <section class="card">
+    <div class="split">
+      <div><h2>Sector overview</h2><p class="sub">Average RS · stock count · 20-session change. Select a sector to drill down.</p></div>
+      <div class="legend"><span class="b1">≥65</span><span class="b2">≥58</span><span class="b4">≥50</span><span class="b5">≥44</span><span class="b6">&lt;44</span></div>
+    </div>
+    <div class="tiles">${D.sectors.map((x, i) => `<button type="button" class="tile ${sband(x.avg)}" data-act="sec" data-v="${i}" ${pressed(S.sec === x.name)}><span class="ell" style="font-size:12px;font-weight:500">${esc(x.name)}</span><span class="big">${x.avg.toFixed(1)}</span><span class="meta">${x.n} stk · 20D ${sgn(x.chg)}${Math.abs(x.chg).toFixed(1)}</span></button>`).join('')}</div>
+  </section>
+
+  <div class="row">
+    <section class="card flush" style="flex:1 1 360px;padding-bottom:8px">
+      <div class="pad split"><div style="min-width:0"><h2>${S.sec ? 'Industries in ' + esc(S.sec) : 'Top industries by RS'}</h2><p class="sub">Select one to filter the stocks · 1W/1M are median returns</p></div>
+      ${S.sec || S.ind ? '<button type="button" class="btn" data-act="clear">Clear</button>' : ''}</div>
+      <div class="ind-head"><span style="font-family:var(--sans)">INDUSTRY</span><span class="r">STK</span><span class="c">RS</span><span class="r">1W</span><span class="r">1M</span></div>
+      ${curInds.map((x, i) => `<button type="button" class="ind-row" data-act="ind" data-v="${i}" ${pressed(S.ind === x.name)}><span class="ell" style="font-weight:500">${esc(x.name)}</span><span class="num r flat">${x.n}</span><span class="badge ${sband(x.avg)}">${Math.round(x.avg)}</span><span class="num r ${cls(x.w1)}">${pct(x.w1)}</span><span class="num r ${cls(x.m1)}">${pct(x.m1)}</span></button>`).join('')}
+    </section>
+
+    <section class="card flush" style="flex:999 1 640px">
+      <div class="pad split">
+        <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;min-width:0"><h2>Stocks</h2><span class="num muted" style="font-size:12px">${nIN(list.length)} stocks${scope ? ' · ' + esc(scope) : ''}</span></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <button type="button" class="btn" data-act="copy">${S.copied ? esc(S.copied) : 'Copy to TradingView'}</button>
+          <button type="button" class="btn dark" data-act="watch">${picked.length ? 'Add ' + picked.length + ' to watchlist' : 'Add to watchlist'}</button>
+        </div>
+      </div>
+      <div class="tools">
+        <label class="search" for="stock-q"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20 L16 16"></path></svg><span hidden>Search stocks</span><input id="stock-q" type="search" placeholder="Search symbol or name" value="${esc(S.q)}" autocomplete="off"></label>
+        ${[['rs80', 'RS ≥ 80'], ['near', 'Within 15% of 52W high'], ['nh', 'Blue dot'], ['liq', 'Turnover ≥ ₹5 Cr']].map(x => `<button type="button" class="chip" data-act="chip" data-v="${x[0]}" ${pressed(S[x[0]])}>${x[1]}</button>`).join('')}
+      </div>
+      <div class="scroll"><div class="t">
+        <div class="t-head"><span class="stick" style="font-family:var(--sans)">STOCK</span><span style="font-family:var(--sans)">INDUSTRY</span><span class="r">PRICE</span>
+          ${heads.map(h => `<button type="button" class="${h[2]}" data-act="sort" data-v="${h[0]}" ${pressed(S.sort === h[0])}>${h[1]}${S.sort === h[0] ? ' ↓' : ''}</button>`).join('')}<span style="font-family:var(--sans)">SIGNAL</span></div>
+        ${shown.map(s => {
+          const sig = s.bd === 2 ? 'Leading blue dot' : s.bd === 1 ? 'RS new high' : s.rb ? 'Blue dot this week' : '—';
+          return `<div class="t-row${s.s === sel.s ? ' on' : ''}">
+            <div class="stick"><input type="checkbox" data-chg="pick" data-v="${esc(s.s)}" aria-label="Select ${esc(s.s)}" ${S.picked[s.s] ? 'checked' : ''}>
+              <button type="button" class="sym" data-act="sel" data-v="${esc(s.s)}" ${pressed(s.s === sel.s)}><b>${esc(s.s)} <span class="ex">NSE</span></b><small class="ell">${esc(s.n)}</small></button></div>
+            <span class="ell flat" style="font-size:13px">${esc(s.ind)}</span>
+            <span class="num r">${inr(s.p)}</span>
+            <span class="num r ${cls(s.d1)}">${pct(s.d1)}</span>
+            <span class="num r ${cls(s.m3)}">${pct(s.m3)}</span>
+            <span class="num r ${cls(s.m12)}">${pct(s.m12)}</span>
+            ${badge(s.rs)}
+            <span class="num r ${cls(s.dl)}">${s.dl == null ? '—' : sgn(s.dl) + Math.abs(s.dl)}</span>
+            <span class="num r" style="color:${s.whd >= -15 ? 'var(--up)' : 'var(--warn)'}">${pct(s.whd)}</span>
+            <span class="num r flat">${s.to >= 100 ? nIN(Math.round(s.to)) : s.to.toFixed(1)}</span>
+            <span class="sig">${s.bd > 0 || s.rb ? '<i class="bdot" aria-hidden="true"></i>' : ''}${sig}</span>
+          </div>`;
+        }).join('')}
+        ${shown.length ? '' : '<div class="empty">No stocks match these filters.</div>'}
+      </div></div>
+      ${list.length > S.limit ? `<div class="more"><button type="button" class="btn" data-act="more">Show more (${nIN(list.length - S.limit)} left)</button></div>` : ''}
+    </section>
+  </div>
+
+  <section class="card" id="detail">
+    <div class="split" style="align-items:flex-start">
+      <div style="min-width:0">
+        <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px"><h2 style="font-size:22px;font-weight:700">${esc(sel.s)}</h2><span class="flat">${esc(sel.n)}</span><span class="muted" style="font-size:12px">${esc(sel.sec)} › ${esc(sel.ind)}</span></div>
+        <div class="num" style="display:flex;align-items:baseline;gap:10px;margin-top:4px"><span style="font-size:18px;font-weight:600">${inr(sel.p)}</span><span class="${cls(sel.d1)}">${pct(sel.d1)}</span></div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+        <div class="seg" role="group" aria-label="Chart range">${RANGES.map(r => `<button type="button" data-act="range" data-v="${r[0]}" ${pressed(S.range === r[0])}>${r[0]}</button>`).join('')}</div>
+        <button type="button" class="btn" data-act="settings" aria-expanded="${S.setOpen}" aria-controls="settings"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"></path><circle cx="16" cy="6" r="2"></circle><circle cx="10" cy="12" r="2"></circle><circle cx="18" cy="18" r="2"></circle></svg>Indicator settings</button>
+      </div>
+    </div>
+    ${S.setOpen ? settings() : ''}
+    ${S.tables ? `<div class="stats">
+      <div class="stat"><div class="k">${own ? 'RS Rating · own ' + S.years + 'y history' : 'RS Rating (1–99) · vs all stocks'}</div><div class="v">${rsVal == null ? '—' : '<span class="badge ' + band(rsVal)[0] + '">' + rsVal + '</span>'}<small>${rsVal == null ? 'Not enough history' : band(rsVal)[1]}</small></div></div>
+      <div class="stat"><div class="k">Market RS change, 20 sessions</div><div class="v ${cls(sel.dl)}">${sel.dl == null ? '—' : sgn(sel.dl) + Math.abs(sel.dl) + ' pts'}</div></div>
+      <div class="stat"><div class="k">RS line vs its 52W high</div><div class="v">${sel.vhi > -0.05 ? 'At high' : pct(sel.vhi)}</div></div>
+      <div class="stat"><div class="k">RS line vs 10W MA</div><div class="v ${cls(sel.vma)}">${pct(sel.vma)}</div></div>
+      <div class="stat"><div class="k">Signal</div><div class="v" style="font-family:var(--sans);font-size:15px;margin-top:10px">${sel.bd > 0 || sel.rb ? '<i class="bdot" style="width:12px;height:12px" aria-hidden="true"></i>' : ''}${sel.bd === 2 ? 'Leading blue dot' : sel.bd === 1 ? 'Blue dot today' : sel.rb ? 'Blue dot this week' : sel.vma >= 0 ? 'RS above 10W MA' : 'RS below 10W MA'}</div></div>
+    </div>` : ''}
+    <div class="split" style="margin-top:20px"><h3>RS line vs ${esc(S.bench)} <span class="muted" style="font-weight:400">· weekly, rebased to 100</span></h3>
+      <div class="leg"><span><svg width="20" height="8" aria-hidden="true"><line x1="0" y1="4" x2="20" y2="4" stroke="${rsColor}" stroke-width="2.4"></line></svg>RS line</span><span><svg width="20" height="8" aria-hidden="true"><line x1="0" y1="4" x2="20" y2="4" stroke="var(--ma)" stroke-width="1.6" stroke-dasharray="5 3"></line></svg>10-week MA</span><span><svg width="20" height="8" aria-hidden="true"><line x1="0" y1="4" x2="20" y2="4" stroke="var(--muted)" stroke-width="1.4" stroke-dasharray="1.5 3"></line></svg>52-week high</span><span><svg width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="4" fill="${dotColor}"></circle></svg>Blue dot</span><span><svg width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="${dotColor}" stroke-width="2"></circle><circle cx="8" cy="8" r="3" fill="${dotColor}"></circle></svg>Leading blue dot</span></div></div>
+    ${c && c.status ? `<div class="status num">${esc(c.status)}</div>` : ''}
+    <div class="chartbox">${c ? `<svg viewBox="0 0 800 230" role="img" aria-label="Weekly RS line of ${esc(sel.s)} against ${esc(S.bench)}">
+      ${[14, 64.5, 115, 165.5, 216].map(y => `<line x1="10" y1="${y}" x2="750" y2="${y}" stroke="var(--line-2)"></line>`).join('')}
+      ${c.base ? `<path d="${c.base}" fill="none" stroke="var(--ma)" stroke-width="1" stroke-dasharray="4 4"></path>` : ''}
+      ${c.hi ? `<path d="${c.hi}" fill="none" stroke="var(--muted)" stroke-width="1.3" stroke-dasharray="1.5 3.5"></path>` : ''}
+      ${c.ma ? `<path d="${c.ma}" fill="none" stroke="var(--ma)" stroke-width="1.5" stroke-dasharray="6 4"></path>` : ''}
+      ${c.rs ? `<path d="${c.rs}" fill="none" stroke="${rsColor}" stroke-width="2.2" stroke-linejoin="round"></path>` : ''}
+      ${c.dots ? `<path d="${c.dots}" fill="${dotColor}"></path>` : ''}
+      ${c.lead ? `<path d="${c.lead}" fill="none" stroke="${dotColor}" stroke-width="2"></path>` : ''}
+      ${c.end ? `<text x="${c.end.x.toFixed(1)}" y="${c.end.y.toFixed(1)}" font-size="12" font-weight="600" fill="${rsColor}" font-family="IBM Plex Mono, monospace">${c.end.t}</text>` : ''}
+    </svg><div class="ticks num">${c.ticks.map(t => `<span>${t}</span>`).join('')}</div>` : '<div class="loading">Not enough history to chart this stock.</div>'}</div>
+    <h3 style="margin-top:20px">RS Rating history · ${c ? c.methodLabel : ''} <span class="muted" style="font-weight:400">· weekly · Elite ${z.elite} · Strong ${z.strong} · Above avg ${z.above} · Neutral ${z.neutral} · Below avg ${z.below}</span></h3>
+    <div class="chartbox" style="padding:8px">${c ? `<svg viewBox="0 0 800 140" role="img" aria-label="Weekly RS rating history of ${esc(sel.s)}">
+      ${S.zoneBg ? `<rect x="10" y="${RY(100)}" width="740" height="${Math.max(0, RY(z.elite) - RY(100))}" fill="var(--b1-bg)"></rect>
+      <rect x="10" y="${RY(z.elite)}" width="740" height="${Math.max(0, RY(z.strong) - RY(z.elite))}" fill="var(--b2-bg)"></rect>
+      <rect x="10" y="${RY(z.strong)}" width="740" height="${Math.max(0, RY(z.above) - RY(z.strong))}" fill="var(--b3-bg)"></rect>
+      <rect x="10" y="${RY(z.neutral)}" width="740" height="${Math.max(0, RY(z.below) - RY(z.neutral))}" fill="var(--b5-bg)"></rect>` : ''}
+      <line x1="10" y1="${RY(z.neutral)}" x2="750" y2="${RY(z.neutral)}" stroke="var(--ma)" stroke-dasharray="2 3"></line>
+      <line x1="10" y1="130" x2="750" y2="130" stroke="var(--line)"></line>
+      ${[[z.elite, 'b1'], [z.strong, 'b2'], [z.above, 'b3'], [z.neutral, 'b4'], [z.below, 'b5']].map(x => `<text x="758" y="${RY(x[0]) + 3}" font-size="10" fill="var(--${x[1]}-fg)" font-family="IBM Plex Mono, monospace">${x[0]}</text>`).join('')}
+      ${c.r ? `<path d="${c.r}" fill="none" stroke="var(--ink)" stroke-width="1.7" stroke-linejoin="round"></path>` : ''}
+    </svg>` : ''}</div>
+  </section>
+
+  <section class="card">
+    <h2>How the numbers work</h2>
+    <div class="notes">
+      <p><b>Data</b> — NSE end-of-day prices, adjusted for splits and bonuses, with NSE's sector and industry classification. ${nIN(D.universe)} stocks rated.</p>
+      <p><b>RS Rating 1–99</b> — percentile rank of (2×C/C₆₃ + C/C₁₂₆ + C/C₁₈₉ + C/C₂₅₂) ÷ 5 against every rated stock. The latest quarter counts 40%.</p>
+      <p><b>Own-history rating</b> — the same score ranked against the stock's own weekly scores over the chosen years, as a TradingView indicator does.</p>
+      <p><b>Blue dot</b> — the RS line closes at a 52-week high. Leading means price hasn't made its own 52-week high yet.</p>
+    </div>
+  </section>`;
+}
+
+function settings() {
+  const ck = (key, label) => `<label class="check"><input type="checkbox" data-chg="cfg" data-v="${key}" ${S[key] ? 'checked' : ''}>${label}</label>`;
+  const tab = S.setTab;
+  let body = '';
+  if (tab === 'inputs') body = `
+    <div><div class="label">Benchmark</div>
+      <label class="field" for="set-bench">Benchmark index<select id="set-bench" data-chg="bench">${['Nifty 500', 'Nifty 50', 'Nifty MidSmallcap 400'].map(b => `<option ${S.bench === b ? 'selected' : ''}>${b}</option>`).join('')}</select></label>
+      <div class="label">RS rating</div>
+      <label class="field" for="set-method">Rating method<select id="set-method" data-chg="method"><option value="market" ${S.method === 'market' ? 'selected' : ''}>Rank vs all NSE stocks</option><option value="own" ${S.method === 'own' ? 'selected' : ''}>Own history (TradingView style)</option></select></label>
+      <label class="field" for="set-years">Percentile history (years)<input id="set-years" type="number" min="1" max="3" value="${S.years}" data-chg="years"></label>
+      <p class="hint">${S.method === 'own' ? 'Ranks this week’s RS score against the stock’s own last ' + S.years + ' year' + (S.years > 1 ? 's' : '') + ' of weekly scores.' : 'Applies when the rating method is “Own history”. The default ranks each stock against every rated NSE stock.'}</p></div>
+    <div><div class="label">RS line &amp; dots</div>
+      ${ck('showRs', 'Show RS line')}${ck('showMa', 'Show RS 10-week MA')}${ck('showDot', 'Show blue dot')}${ck('showLead', 'Show leading blue dot')}${ck('showHi', 'Show RS 52-week high line')}
+      <label class="field" for="set-rsc">RS line colour<input id="set-rsc" type="color" data-chg="rsColor" value="${S.rsColor || '#1F6FEB'}"></label>
+      <label class="field" for="set-dot">Blue dot colour<input id="set-dot" type="color" data-chg="dotColor" value="${S.dotColor || '#00A3C4'}"></label></div>`;
+  else if (tab === 'style') body = `
+    <div><div class="label">Plots</div>${ck('zoneBg', 'Zone background')}${ck('showRating', 'RS Rating (1–99) line')}${ck('showBase', 'RS base (100) line')}
+      <label class="field" for="set-prec">Precision<select id="set-prec" data-chg="prec">${[['default', 'Default'], ['0', '0 decimals'], ['1', '1 decimal'], ['2', '2 decimals']].map(p => `<option value="${p[0]}" ${S.prec === p[0] ? 'selected' : ''}>${p[1]}</option>`).join('')}</select></label></div>
+    <div><div class="label">RS rating zones</div>${[['elite', 'Elite', 'b1'], ['strong', 'Strong', 'b2'], ['above', 'Above average', 'b3'], ['neutral', 'Neutral', 'b4'], ['below', 'Below average', 'b5']].map(x =>
+      `<label class="field" for="z-${x[0]}"><span style="display:flex;align-items:center;gap:10px"><i class="sw ${x[2]}" aria-hidden="true"></i>${x[1]}</span><input id="z-${x[0]}" type="number" min="1" max="99" value="${S.z[x[0]]}" data-chg="zone" data-v="${x[0]}"></label>`).join('')}</div>`;
+  else body = `
+    <div><div class="label">Graphic objects</div>${ck('tables', 'Tables (rating, change and signal tiles)')}</div>
+    <div><div class="label">Output &amp; input values</div>${ck('labels', 'Labels on price scale')}${ck('statusVals', 'Values in status line')}${ck('statusInputs', 'Inputs in status line')}</div>`;
+  return `<div class="settings" id="settings">
+    <div class="tabs"><div role="group" aria-label="Settings sections">${[['inputs', 'Inputs'], ['style', 'Style'], ['vis', 'Visibility']].map(t => `<button type="button" class="tab" data-act="setTab" data-v="${t[0]}" ${pressed(tab === t[0])}>${t[1]}</button>`).join('')}</div>
+      <button type="button" class="x" data-act="settings" aria-label="Close settings"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"></path></svg></button></div>
+    <div class="sbody">${body}</div>
+    <div class="sfoot"><button type="button" class="btn" data-act="reset">Reset to defaults</button></div>
+  </div>`;
+}
+
+// ---------------------------------------------------------------- screener
+function screener() {
+  const P = SC;
+  const item = r => `<div class="mi"><div style="min-width:0"><b>${esc(r.s)}</b><small class="ell" style="display:block">${esc(r.sec)}</small></div><span class="chg ${cls(r.d1)}">${pct(r.d1)}</span></div>`;
+  const vitem = r => `<div class="mi"><div style="min-width:0"><b>${esc(r.s)}</b><small class="num">${r.vx == null ? '' : r.vx.toFixed(1) + '× avg volume'}</small></div><span class="chg ${cls(r.d1)}">${pct(r.d1)}</span></div>`;
+  const all = (key) => P[key].length ? `<button type="button" class="link" data-act="sview" data-v="${key}">View all ${P[key].length} →</button>` : '';
+  const hl = P[S.hl], ch = P[S.circ], secs = S.secTab === 'top' ? P.top : P.worst;
+  const TITLES = { hi: '52-week highs', lo: '52-week lows', vs: 'Volume shockers', uc: 'Upper circuit hits', lc: 'Lower circuit hits' };
+  const v = S.sview;
+  const dt = new Date(P.asof + 'T00:00:00');
+  return `
+  <h1>Screener</h1>
+  <section class="card summary"><div><div class="label">Stocks tracked</div><div class="big">${nIN(P.tracked)}</div></div><div><div class="label">Data as of</div><div class="big gold">${dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</div></div></section>
+  <div class="layout">
+    <div class="main">
+      <div class="label" style="font-size:13px">Market breadth</div>
+      <div class="btiles">
+        <div class="bt adv"><div class="k">ADVANCERS</div><div class="v">${nIN(P.adv)}</div></div>
+        <div class="bt dec"><div class="k">DECLINERS</div><div class="v">${nIN(P.dec)}</div></div>
+        <div class="bt e50"><div class="k">ABOVE 50 EMA</div><div class="v">${Math.round(P.e50)}%</div></div>
+        <div class="bt e200"><div class="k">ABOVE 200 EMA</div><div class="v">${Math.round(P.e200)}%</div></div>
+      </div>
+      <div class="label" style="font-size:13px;margin-top:8px">Movers</div>
+      <div class="movers">
+        <section class="card mv"><div class="hd"><div class="seg" role="group" aria-label="52-week list">${[['hi', '52W High'], ['lo', '52W Low']].map(t => `<button type="button" data-act="hl" data-v="${t[0]}" ${pressed(S.hl === t[0])}>${t[1]}</button>`).join('')}</div><span class="num muted" style="font-size:12px">${hl.length} stocks</span></div>
+          <div class="list">${hl.slice(0, 5).map(item).join('') || '<p class="muted">No stocks today</p>'}</div>${all(S.hl)}</section>
+        <section class="card mv"><div class="hd"><h3 class="blue">Volume Shockers</h3><span class="num muted" style="font-size:12px">${P.vs.length} stocks</span></div>
+          <div class="list">${P.vs.slice(0, 5).map(vitem).join('')}</div>${all('vs')}</section>
+        <section class="card mv"><div class="hd"><h3 class="gold">Circuit Hits</h3><span class="num muted" style="font-size:12px">${P.uc.length + P.lc.length} stocks</span></div>
+          <div class="seg" role="group" aria-label="Circuit direction" style="align-self:flex-start">${[['uc', 'Upper'], ['lc', 'Lower']].map(t => `<button type="button" data-act="circ" data-v="${t[0]}" ${pressed(S.circ === t[0])}>${t[1]}</button>`).join('')}</div>
+          <div class="list">${ch.slice(0, 5).map(item).join('') || '<p class="muted">No stocks today</p>'}</div>${all(S.circ)}</section>
+        <section class="card mv"><div class="hd"><h3 class="gold">Corporate Actions</h3></div><p class="muted" style="margin:0;line-height:1.5">No corporate-actions feed connected yet. Splits, bonuses and dividends will list here.</p></section>
+      </div>
+      <section class="card mv" style="max-width:440px">
+        <div class="seg" role="group" aria-label="Sector list" style="align-self:flex-start">${[['top', 'Top Sector'], ['worst', 'Worst Sector']].map(t => `<button type="button" data-act="secTab" data-v="${t[0]}" ${pressed(S.secTab === t[0])}>${t[1]}</button>`).join('')}</div>
+        <div>${secs.slice(0, 5).map(x => `<div class="mi"><div style="min-width:0"><b class="ell">${esc(x.name)}</b><small class="num">${x.up} up / ${x.dn} down</small></div><span class="chg ${cls(x.med)}">${pct(x.med)}</span></div>`).join('')}</div>
+        <p class="sub">Median 1-day change of the sector's stocks.</p>
+      </section>
+      ${v ? `<section class="card flush" id="sview" aria-label="${TITLES[v]}"><div class="pad split"><h3 style="font-size:16px">${TITLES[v]} · ${P[v].length} stocks</h3><button type="button" class="btn" data-act="sclose">Close</button></div>
+        <div class="scroll"><div style="min-width:760px"><div class="st-head"><span>SYMBOL</span><span>SECTOR</span><span class="r">PRICE</span><span class="r">1D</span><span class="r">VOL ×50D</span><span class="r">TO ₹CR</span><span class="r">RS</span></div>
+        ${P[v].map(r => `<div class="st-row"><b>${esc(r.s)}</b><span class="ell muted">${esc(r.sec)}</span><span class="num r">${inr(r.p)}</span><span class="num r ${cls(r.d1)}"><b>${pct(r.d1)}</b></span><span class="num r flat">${r.vx == null ? '—' : r.vx.toFixed(1) + '×'}</span><span class="num r flat">${r.to >= 100 ? nIN(Math.round(r.to)) : r.to.toFixed(1)}</span><span class="num r"><b>${r.rs ?? '—'}</b></span></div>`).join('')}
+        </div></div></section>` : ''}
+    </div>
+    <aside class="card">
+      <h2 style="font-size:18px;font-weight:700">Result Calendar</h2>
+      <div class="seg" role="group" aria-label="Result day" style="margin-top:12px">${[['yday', 'Yesterday'], ['today', 'Today'], ['tmrw', 'Tomorrow']].map(t => `<button type="button" style="flex:1" data-act="rDay" data-v="${t[0]}" ${pressed(S.rDay === t[0])}>${t[1]}</button>`).join('')}</div>
+      <p class="muted" style="margin:14px 0 0;line-height:1.5">No results feed connected yet. Company results for ${S.rDay === 'yday' ? 'yesterday' : S.rDay === 'tmrw' ? 'tomorrow' : 'today'} will list here.</p>
+    </aside>
+  </div>
+  <p class="sub" style="line-height:1.6">Computed from NSE end-of-day prices. 52W High/Low: the day's high or low beyond the prior 52 weeks. Volume shockers: volume at least 3× the 50-day average with ₹1 Cr+ traded. Circuit hits are inferred: closed at the day's high or low with a change matching a 2/5/10/20% band.</p>`;
+}
+
+// ---------------------------------------------------------------- render + events
+function view() { return location.hash === '#screener' ? 'screener' : 'dashboard'; }
+function render() {
+  if (!D) return;
+  const v = view();
+  document.getElementById('nav-dashboard').toggleAttribute('aria-current', v === 'dashboard');
+  document.getElementById('nav-screener').toggleAttribute('aria-current', v === 'screener');
+  if (v === 'dashboard') document.getElementById('nav-dashboard').setAttribute('aria-current', 'page');
+  else document.getElementById('nav-screener').setAttribute('aria-current', 'page');
+  const active = document.activeElement && document.activeElement.id;
+  const caret = active === 'stock-q' ? document.activeElement.selectionStart : null;
+  $app.innerHTML = v === 'screener' ? screener() : dashboard();
+  if (active) {
+    const el = document.getElementById(active);
+    if (el) { el.focus({ preventScroll: true }); if (caret != null && el.setSelectionRange) el.setSelectionRange(caret, caret); }
+  }
+}
+window.addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); });
+
+$app.addEventListener('click', e => {
+  const t = e.target.closest('[data-act]');
+  if (!t) return;
+  const a = t.dataset.act, v = t.dataset.v;
+  switch (a) {
+    case 'sec': { const x = curSecs[+v]; S.sec = S.sec === x.name ? null : x.name; S.ind = null; S.limit = 50; break; }
+    case 'ind': { const x = curInds[+v]; S.ind = S.ind === x.name ? null : x.name; S.limit = 50; break; }
+    case 'clear': S.sec = null; S.ind = null; S.limit = 50; break;
+    case 'chip': S[v] = !S[v]; S.limit = 50; break;
+    case 'sort': S.sort = v; S.limit = 50; break;
+    case 'more': S.limit += 50; break;
+    case 'sel': S.sel = v; render(); document.getElementById('detail').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); return;
+    case 'range': S.range = v; break;
+    case 'settings': S.setOpen = !S.setOpen; break;
+    case 'setTab': S.setTab = v; break;
+    case 'reset': Object.assign(S, DEFAULTS()); break;
+    case 'copy': {
+      const picked = Object.keys(S.picked);
+      const syms = picked.length ? picked : (S._list || []).slice(0, S.limit).map(x => x.s);
+      const txt = syms.map(x => 'NSE:' + x).join(',');
+      const done = msg => { S.copied = msg; render(); setTimeout(() => { S.copied = ''; render(); }, 2500); };
+      try { navigator.clipboard.writeText(txt).then(() => done('Copied ' + syms.length + ' symbols'), () => done('Copy blocked by the browser')); } catch (err) { done('Copy blocked by the browser'); }
+      return;
+    }
+    case 'watch': return;
+    case 'hl': S.hl = v; break;
+    case 'circ': S.circ = v; break;
+    case 'secTab': S.secTab = v; break;
+    case 'rDay': S.rDay = v; break;
+    case 'sview': S.sview = v; render(); document.getElementById('sview').scrollIntoView({ block: 'start' }); return;
+    case 'sclose': S.sview = null; break;
+    default: return;
+  }
+  render();
+});
+
+$app.addEventListener('input', e => {
+  if (e.target.id === 'stock-q') { S.q = e.target.value; S.limit = 50; render(); }
+});
+
+$app.addEventListener('change', e => {
+  const t = e.target, k = t.dataset.chg, v = t.dataset.v;
+  if (!k) return;
+  if (k === 'pick') { if (t.checked) S.picked[v] = true; else delete S.picked[v]; }
+  else if (k === 'cfg') S[v] = t.checked;
+  else if (k === 'bench' || k === 'method' || k === 'prec') S[k] = t.value;
+  else if (k === 'rsColor' || k === 'dotColor') S[k] = t.value;
+  else if (k === 'years') { const n = parseInt(t.value, 10); if (!isNaN(n)) S.years = Math.max(1, Math.min(3, n)); }
+  else if (k === 'zone') { const n = parseInt(t.value, 10); if (!isNaN(n)) S.z = Object.assign({}, S.z, { [v]: Math.max(1, Math.min(99, n)) }); }
+  render();
+});
+
+load();
+})();
+</script>
+
+</body>
+</html>

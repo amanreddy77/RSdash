@@ -1,44 +1,39 @@
-# Mautic community handbook
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
+# Strength Desk
 
+An NSE relative-strength (RS) dashboard and screener, built on real end-of-day prices.
 
-A handbook for all things related to the Mautic Community.
+- **RS Dashboard**: market breadth, sector and industry RS rankings, a filterable table of every rated stock, and an RS line chart with blue dots and an RS Rating history (TradingView-style indicator settings included).
+- **Screener**: advancers/decliners, 52-week highs and lows, volume shockers, upper/lower circuit hits and sector movers.
 
-To contribute please make a PR for review by the Community Leadership Team.
+## How it works
 
-[![Documentation Status](https://readthedocs.org/projects/mautic-community-handbook/badge/?version=latest)](https://mautic-community-handbook.readthedocs.io/en/latest/?badge=latest)
+The site is static: `index.html` reads two data files.
 
+| File | Contents |
+|---|---|
+| `data/rs.json` | RS ratings, returns and signals for ~2,400 NSE stocks, sector/industry aggregates, breadth, and 4 years of weekly prices for the charts |
+| `data/screener.json` | The latest session's movers, circuits and sector changes |
 
-## Contributors ✨
+A GitHub Action (`.github/workflows/update-data.yml`) rebuilds both files every weekday at 20:00 IST:
 
-Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+1. Downloads NSE daily prices (split/bonus adjusted) from [eod2_data](https://github.com/BennyThadikaran/eod2_data).
+2. Runs `scripts/compute_rs.py`, `scripts/compute_screener.py` and `scripts/embed.py`.
+3. Commits the new data. Vercel redeploys on the commit.
 
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="top" width="14.28%"><a href="http://hojtsy.hu"><img src="https://avatars.githubusercontent.com/u/235185?v=4?s=100" width="100px;" alt="Gábor Hojtsy"/><br /><sub><b>Gábor Hojtsy</b></sub></a><br /><a href="https://github.com/mautic/mautic-community-handbook/commits?author=goba" title="Documentation">📖</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://www.schriftrolle.de/?utm_source=github&utm_medium=profilLink"><img src="https://avatars.githubusercontent.com/u/765204?v=4?s=100" width="100px;" alt="Sven Döring"/><br /><sub><b>Sven Döring</b></sub></a><br /><a href="https://github.com/mautic/mautic-community-handbook/commits?author=sdoering" title="Documentation">📖</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/deborahsalves"><img src="https://avatars.githubusercontent.com/u/79517214?v=4?s=100" width="100px;" alt="Déborah Salves"/><br /><sub><b>Déborah Salves</b></sub></a><br /><a href="https://github.com/mautic/mautic-community-handbook/commits?author=deborahsalves" title="Documentation">📖</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/tobsowo"><img src="https://avatars.githubusercontent.com/u/5642737?v=4?s=100" width="100px;" alt="Oluwatobi Owolabi"/><br /><sub><b>Oluwatobi Owolabi</b></sub></a><br /><a href="https://github.com/mautic/mautic-community-handbook/pulls?q=is%3Apr+reviewed-by%3Atobsowo" title="Reviewed Pull Requests">👀</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://www.ruthcheesley.co.uk"><img src="https://avatars.githubusercontent.com/u/2930593?v=4?s=100" width="100px;" alt="Ruth Cheesley"/><br /><sub><b>Ruth Cheesley</b></sub></a><br /><a href="https://github.com/mautic/mautic-community-handbook/pulls?q=is%3Apr+reviewed-by%3Archeesley" title="Reviewed Pull Requests">👀</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://ionutojica.com"><img src="https://avatars.githubusercontent.com/u/96743055?v=4?s=100" width="100px;" alt="IonutOjicaDE"/><br /><sub><b>IonutOjicaDE</b></sub></a><br /><a href="https://github.com/mautic/mautic-community-handbook/pulls?q=is%3Apr+reviewed-by%3AIonutOjicaDE" title="Reviewed Pull Requests">👀</a> <a href="https://github.com/mautic/mautic-community-handbook/commits?author=IonutOjicaDE" title="Documentation">📖</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/daniellord32"><img src="https://avatars.githubusercontent.com/u/25160505?v=4?s=100" width="100px;" alt="Daniel Lord"/><br /><sub><b>Daniel Lord</b></sub></a><br /><a href="https://github.com/mautic/mautic-community-handbook/pulls?q=is%3Apr+reviewed-by%3Adaniellord32" title="Reviewed Pull Requests">👀</a></td>
-    </tr>
-    <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/domidc"><img src="https://avatars.githubusercontent.com/u/160307959?v=4?s=100" width="100px;" alt="domidc"/><br /><sub><b>domidc</b></sub></a><br /><a href="https://github.com/mautic/mautic-community-handbook/commits?author=domidc" title="Documentation">📖</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://www.linkedin.com/in/vibhuti019"><img src="https://avatars.githubusercontent.com/u/44270768?v=4?s=100" width="100px;" alt="Vibhuti"/><br /><sub><b>Vibhuti</b></sub></a><br /><a href="https://github.com/mautic/mautic-community-handbook/commits?author=vibhuti019" title="Documentation">📖</a></td>
-    </tr>
-  </tbody>
-</table>
+Run it by hand from the **Actions** tab with **Run workflow**.
 
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
+## RS Rating
 
-<!-- ALL-CONTRIBUTORS-LIST:END -->
+Percentile rank (1–99) of `(2×C/C63 + C/C126 + C/C189 + C/C252) / 5` across every rated NSE stock. The latest quarter counts 40%. The chart settings can switch to an "own history" percentile, which ranks the stock against its own past scores the way a TradingView indicator does.
 
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+## Known limits
+
+- Circuit hits are inferred from prices (closed at the day's high/low with a 2/5/10/20% move). NSE's EOD files don't include price bands.
+- Result calendar and corporate actions need an announcements feed, which isn't connected.
+- BSE-only stocks aren't included.
+
+## Run locally
+
+```bash
+python3 -m http.server 8000   # then open http://localhost:8000
+```
