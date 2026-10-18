@@ -9,7 +9,7 @@ import os
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'public')
 
 
-def app(environ, start_response):
+def serve(environ, start_response):
     path = environ.get('PATH_INFO') or '/'
     if path.endswith('/'):
         path += 'index.html'
@@ -25,3 +25,7 @@ def app(environ, start_response):
     cache = 'public, max-age=3600' if '/data/' in full else 'public, max-age=300'
     start_response('200 OK', [('Content-Type', ctype), ('Content-Length', str(len(body))), ('Cache-Control', cache)])
     return [body]
+
+
+# Vercel looks for a module-level `app` (see [tool.vercel] in pyproject.toml)
+app = serve

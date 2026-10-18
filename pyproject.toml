@@ -1,0 +1,10 @@
+# Only used if Vercel builds this repo with its Python preset: app.py then
+# serves the static site in public/. It needs no packages.
+[project]
+name = "strength-desk"
+version = "1.0.0"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.vercel]
+entrypoint = "app:app"
