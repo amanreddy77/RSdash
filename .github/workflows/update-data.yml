@@ -57,17 +57,17 @@ jobs:
           python ../scripts/compute_rs.py
           python ../scripts/compute_screener.py
           python ../scripts/embed.py
-          cp out/embed.js ../data/rs.json
-          cp out/screener.json ../data/screener.json
+          cp out/embed.js ../public/data/rs.json
+          cp out/screener.json ../public/data/screener.json
 
       - name: Commit the new data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data
+          git add public/data
           if git diff --cached --quiet; then
             echo "Data unchanged (market holiday or source not updated yet)"
           else
-            git commit -m "Update market data for $(python -c "import json;print(json.load(open('data/screener.json'))['asof'])")"
+            git commit -m "Update market data for $(python -c "import json;print(json.load(open('public/data/screener.json'))['asof'])")"
             git push
           fi

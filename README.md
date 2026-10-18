@@ -7,12 +7,12 @@ An NSE relative-strength (RS) dashboard and screener, built on real end-of-day p
 
 ## How it works
 
-The site is static: `index.html` reads two data files.
+The site is static: `public/index.html` reads two data files from `public/data/`. `app.py` only exists so the site also works if Vercel builds the repo with its Python preset.
 
 | File | Contents |
 |---|---|
-| `data/rs.json` | RS ratings, returns and signals for ~2,400 NSE stocks, sector/industry aggregates, breadth, and 4 years of weekly prices for the charts |
-| `data/screener.json` | The latest session's movers, circuits and sector changes |
+| `public/data/rs.json` | RS ratings, returns and signals for ~2,400 NSE stocks, sector/industry aggregates, breadth, and 4 years of weekly prices for the charts |
+| `public/data/screener.json` | The latest session's movers, circuits and sector changes |
 
 A GitHub Action (`.github/workflows/update-data.yml`) rebuilds both files every weekday at 20:00 IST:
 
@@ -35,5 +35,5 @@ Percentile rank (1–99) of `(2×C/C63 + C/C126 + C/C189 + C/C252) / 5` across e
 ## Run locally
 
 ```bash
-python3 -m http.server 8000   # then open http://localhost:8000
+cd public && python3 -m http.server 8000   # then open http://localhost:8000
 ```
