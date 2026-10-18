@@ -51,20 +51,27 @@ jobs:
             echo "Using the committed classification list"
           fi
 
-      - name: Compute RS ratings and screener data
+      - name: Compute RS ratings, screener data and daily history
         working-directory: work
+        env:
+          HISTORY_SESSIONS: '126'
         run: |
           python ../pipeline/compute_rs.py
           python ../pipeline/compute_screener.py
           python ../pipeline/embed.py
+          python ../pipeline/compute_history.py
           cp out/embed.js ../scripts/public/data/rs.json
           cp out/screener.json ../scripts/public/data/screener.json
+          # daily snapshots for the date picker; keeps the last HISTORY_SESSIONS trading days
+          rm -rf ../scripts/public/data/history
+          mkdir -p ../scripts/public/data/history
+          cp out/history/*.json ../scripts/public/data/history/
 
       - name: Commit the new data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts/public/data
+          git add -A scripts/public/data
           if git diff --cached --quiet; then
             echo "Data unchanged (market holiday or source not updated yet)"
           else

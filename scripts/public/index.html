@@ -65,7 +65,10 @@ a { color: var(--accent) }
 .nav { display: flex; gap: 4px; flex: 1 1 auto }
 .nav a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 8px; color: var(--ink-2); text-decoration: none; font-weight: 500 }
 .nav a[aria-current="page"] { background: var(--inv-bg); color: var(--inv-fg); font-weight: 600 }
-.asof { font-size: 12px; color: var(--muted) }
+.asof { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted) }
+.asof select { height: 38px; padding: 0 8px; border: 1px solid var(--ctl); border-radius: 8px; background: var(--surface); color: var(--ink); font-family: var(--mono); font-size: 13px }
+.past { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 10px 16px; border-radius: 10px; background: var(--b3-bg); color: var(--b3-fg); font-size: 13px }
+.past button { min-height: 36px; padding: 0 12px; border: 1px solid currentColor; border-radius: 8px; background: transparent; color: inherit; font-weight: 600 }
 
 main.wrap { padding-block: 20px 56px; display: grid; gap: 16px }
 h1 { margin: 0; font-size: 24px; letter-spacing: -0.01em; text-wrap: balance }
@@ -227,7 +230,9 @@ h3 { margin: 0; font-size: 14px; font-weight: 600 }
       <a href="#dashboard" id="nav-dashboard">RS Dashboard</a>
       <a href="#screener" id="nav-screener">Screener</a>
     </nav>
-    <span class="asof num" id="asof"></span>
+    <label class="asof" for="asof-sel">NSE EOD as of
+      <select id="asof-sel" disabled><option>loading…</option></select>
+    </label>
   </div>
 </header>
 <main class="wrap" id="app"><div class="loading">Loading NSE end-of-day data…</div></main>
@@ -283,12 +288,58 @@ async function load() {
       close[k] = out;
     }
     D = d; SR = { dates: rs.sr.dates, bench: rs.sr.bench, close, rating: rs.sr.r }; SC = sc;
-    document.getElementById('asof').textContent = 'NSE EOD · ' + new Date(D.asof + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    LATEST = { D, SC, M };
     render();
+    loadHistoryIndex();
   } catch (e) {
     $app.innerHTML = '<div class="card loading">Could not load the market data files (' + esc(e.message || e) + '). Reload the page to try again.</div>';
   }
 }
+
+// ---------------------------------------------------------------- past dates
+let LATEST = null, HMETA = null, HDATES = [];
+const fmtDate = (ds, opts) => new Date(ds + 'T00:00:00').toLocaleDateString('en-GB', opts || { day: 'numeric', month: 'short', year: 'numeric' });
+const $sel = document.getElementById('asof-sel');
+
+async function loadHistoryIndex() {
+  try {
+    HDATES = (await fetch('data/history/index.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })).dates;
+  } catch (e) { HDATES = []; }
+  if (!HDATES.includes(LATEST.D.asof)) HDATES.unshift(LATEST.D.asof);
+  const months = {};
+  HDATES.forEach(ds => { const m = fmtDate(ds, { month: 'long', year: 'numeric' }); (months[m] = months[m] || []).push(ds); });
+  $sel.innerHTML = Object.entries(months).map(([m, ds]) => `<optgroup label="${m}">${ds.map(x => `<option value="${x}">${fmtDate(x, { weekday: 'short', day: 'numeric', month: 'short' })}${x === LATEST.D.asof ? ' (latest)' : ''}</option>`).join('')}</optgroup>`).join('');
+  $sel.value = D.asof;
+  $sel.disabled = HDATES.length < 2;
+}
+
+async function showDate(ds) {
+  if (ds === LATEST.D.asof) { D = LATEST.D; SC = LATEST.SC; M = LATEST.M; S.sview = null; render(); return; }
+  $sel.disabled = true;
+  $app.innerHTML = `<div class="card loading">Loading ${fmtDate(ds)}…</div>`;
+  try {
+    const [snap, meta] = await Promise.all([
+      fetch('data/history/' + ds + '.json').then(r => { if (!r.ok) throw new Error('no data for this day'); return r.json(); }),
+      HMETA ? HMETA : fetch('data/history/meta.json').then(r => r.json())
+    ]);
+    HMETA = meta;
+    const d = snap.d;
+    d.stocks = d.s.map(a => {
+      const o = {}; d.f.forEach((k, i) => { o[k] = a[i]; }); o.rb = !!o.rb;
+      const m = meta[o.s] || (LATEST.M[o.s] ? [LATEST.M[o.s].n, LATEST.M[o.s].sec, LATEST.M[o.s].ind] : [o.s, 'Unclassified', 'Unclassified']);
+      o.n = m[0]; o.sec = m[1]; o.ind = m[2]; return o;
+    });
+    M = {}; d.stocks.forEach(s => { M[s.s] = s; });
+    D = d; SC = snap.sc; S.sview = null;
+    if (S.sec && !D.sectors.some(x => x.name === S.sec)) { S.sec = null; S.ind = null; }
+  } catch (e) {
+    $app.innerHTML = `<div class="card loading">Could not load ${fmtDate(ds)} (${esc(e.message || e)}). Pick another day or go back to the latest.</div>`;
+    $sel.disabled = false; return;
+  }
+  $sel.disabled = false;
+  render();
+}
+$sel.addEventListener('change', () => showDate($sel.value));
 
 // ---------------------------------------------------------------- RS chart maths
 function ownRating(rl, years) {
@@ -311,8 +362,13 @@ function ownRating(rl, years) {
 }
 
 function chart(sym, k) {
-  const cl = SR.close[sym], bc = SR.bench[S.bench];
-  if (!cl) return null;
+  // weekly points up to the day being viewed (all of them on the latest day)
+  let end = SR.dates.length;
+  while (end > 0 && SR.dates[end - 1] > D.asof) end--;
+  if (!SR.close[sym] || end < k) return null;
+  const cl = SR.close[sym].slice(0, end), bc = SR.bench[S.bench].slice(0, end);
+  const ratingAll = SR.rating[sym], ratingOff = SR.dates.length - ratingAll.length;
+  const ratingHist = ratingAll.slice(0, Math.max(0, end - ratingOff));
   const N = cl.length, st = N - k;
   const rl = cl.map((x, i) => (x == null || !bc[i]) ? null : x / bc[i]);
   const ma = rl.map((x, i) => { if (x == null || i < 9) return null; const w = rl.slice(i - 9, i + 1); return w.some(v => v == null) ? null : w.reduce((a, b) => a + b, 0) / 10; });
@@ -338,7 +394,7 @@ function chart(sym, k) {
   const path = (a, fy) => { let o = '', pen = false; a.forEach((v, i) => { if (v == null) { pen = false; return; } o += (pen ? 'L' : 'M') + X(i).toFixed(1) + ' ' + fy(v).toFixed(1) + ' '; pen = true; }); return o; };
   const ring = (cx, cy, r) => 'M' + (cx - r).toFixed(1) + ' ' + cy.toFixed(1) + ' a' + r + ' ' + r + ' 0 1 0 ' + 2 * r + ' 0 a' + r + ' ' + r + ' 0 1 0 ' + -2 * r + ' 0';
   const own = ownRating(rl, S.years);
-  const R = S.method === 'own' ? own.slice(-k) : SR.rating[sym].slice(-k);
+  const R = S.method === 'own' ? own.slice(-k) : ratingHist.slice(-k);
   const dec = S.prec === 'default' ? 1 : +S.prec;
   const fmt = v => v == null ? '—' : (v * f).toFixed(dec);
   const lastV = V[k - 1], lastR = R.slice().reverse().find(v => v != null);
@@ -607,7 +663,11 @@ function render() {
   else document.getElementById('nav-screener').setAttribute('aria-current', 'page');
   const active = document.activeElement && document.activeElement.id;
   const caret = active === 'stock-q' ? document.activeElement.selectionStart : null;
-  $app.innerHTML = v === 'screener' ? screener() : dashboard();
+  const past = LATEST && D !== LATEST.D
+    ? `<div class="past" role="status"><span>Showing <b>${fmtDate(D.asof, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</b>. Ratings, lists and charts use data up to this day.</span><button type="button" data-act="latest">Back to latest (${fmtDate(LATEST.D.asof, { day: 'numeric', month: 'short' })})</button></div>`
+    : '';
+  $app.innerHTML = past + (v === 'screener' ? screener() : dashboard());
+  if ($sel.options.length > 1) $sel.value = D.asof;
   if (active) {
     const el = document.getElementById(active);
     if (el) { el.focus({ preventScroll: true }); if (caret != null && el.setSelectionRange) el.setSelectionRange(caret, caret); }
@@ -640,6 +700,7 @@ $app.addEventListener('click', e => {
       return;
     }
     case 'watch': return;
+    case 'latest': showDate(LATEST.D.asof); return;
     case 'hl': S.hl = v; break;
     case 'circ': S.circ = v; break;
     case 'secTab': S.secTab = v; break;
